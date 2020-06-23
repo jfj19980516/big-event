@@ -1,90 +1,82 @@
+
+
 $(function () {
-    // ----------------  切换登录和注册的盒子 -----------------
-    $('.goto-register').click(function () {
-        $('#register').show().prev().hide();
-    });
+    // 点击“去注册账号”的链接
+    $('#link_reg').on('click', function () {
+        $('.login-box').hide()
+        $('.reg-box').show()
+    })
 
-    $('.goto-login').click(function () {
-        $('#register').hide().prev().show();
-    });
+    // 点击“去登录”的链接
+    $('#link_login').on('click', function () {
+        $('.login-box').show()
+        $('.reg-box').hide()
+    })
 
-    // ----------------  注册功能  --------------------------
-    // 监听注册表单的提交事件
-    $('#register form').on('submit', function (e) {
 
-        // 阻止默认行为（阻止表单提交的行为）
-        e.preventDefault();
-        // 使用JS收集表单中的数据(获取输入框中的账号和密码)
-        /**
-             * serialize 是根据表单项的name属性值获取值的，所以这里一定要检查表单项的name属性
-             */
-        var data = $(this).serialize();
-        // console.log(data); // username=admin&password=123
-        // 把账号和密码提交给接口，从而完成注册
-        $.ajax({
-            type: 'POST',
-            url: 'http://www.liulongbin.top:3007/api/reguser',
-            data: data,
-            success: function (res) {
-                // 无论成功还是失败，都要提示
-                // alert(res.message);
-                // leyui提供提示框
-                layer.msg(res.message);
-                // 并且隐藏注册的盒子，显示登录的盒子
-                if (res.status === 0) {
-                    $('#register').hide().prev().show();
-                }
-            }
-        });
-
-    });
-
-    // -----------------------------完成表单验证-----------------------
     var form = layui.form;
     // 调用form.verify() 方法，自定义验证规则
     form.verify({
-        // len:[正则表达式, 错误提示]
-        len: [/^\w{6,12}$/, '密码长度必须是6-12位'],
-        same: function (value) {
-            //形参 value 表示使用验证规则的值
-            // return '错误提示';
-            // 获取密码框的值
-            var password = $("#reg-password").val();
-            // 比较
-            if (password !== value) {
-                return '两次密码不一致-JFJ提示'
+        // 自定义了一个叫做 pwd 校验规则
+        pwd: [/^[\S]{6,12}$/, '密码必须6到12位，且不能出现空格'],
+        // 校验两次密码是否一致的规则
+        repwd: function (value) {
+            // 通过形参拿到的是确认密码框中的内容
+            // 还需要拿到密码框中的内容
+            // 然后进行一次等于的判断
+            // 如果判断失败,则return一个提示消息即可
+            var pwd = $('.reg-box [name=password]').val()
+            if (pwd !== value) {
+                return '两次密码不一致！'
             }
         }
     })
 
-    // ----------------------------完成登录功能-------------------------
-    // 监听登录表单提交事件
-    $("#login form").on("submit", function (e) {
-        // 阻止默认行为
-        e.preventDefault();
+
+    // 监听注册表单默认提交
+    $("#form_reg").on('submit', function (e) {
+        // 阻止表单默认提交时间
+        e.preventDefault()
         // 获取账号和密码
-
-        // ajax提交给接口
-        $.ajax({
-            type: 'POST',
-            url: 'http://www.liulongbin.top:3007/api/login',
-            data: $(this).serialize(),
-            success: function (res) {
-                // 登录成功或失败都要提示
-                // alert(res.message);
-                // leyui提供提示框
-                layer.msg(res.message);
-                // 登录成功后跳转到index.html页面
-                if (res.status === 0) {
-                    // 登录成功先保存token
-                    localStorage.setItem('token', res.token);
-                    // location是BOM对象 直接可以使用  功能是页面跳转
-                    location.href = "/index.html"
-                }
-
+        var data = {
+            username: $('#form_reg [name=username]').val(),
+            password: $('#form_reg [name=password]').val()
+        }
+        // 发送ajax请求
+        $.post('http://ajax.frontend.itheima.net/api/reguser', data, function (res) {
+            // 判断是否成功
+            if (res.status !== 0) {
+                // layer.msg() 是leyui提供的弹出层
+                return layer.msg(res.message);
             }
+            layer.msg("注册成功");
+            // 注册成功后自动触发去登陆按钮
+            $("#link_login").click();
         })
     })
 
 
-});
+    // 监听登录表单提交事件
+    $("#form_login").on('submit', function (e) {
+        e.preventDefault();
+        // 获取输入框账号和密码
+        var data = $(this).serialize();
+        // 发送ajax请求
+        $.post('http://ajax.frontend.itheima.net/api/login', data, function (res) {
+            // 判断是否登录成功
+            if (res.status !== 0) {
+                return layer.msg("您太丑拒绝您的登录");
+            }
+            layer.msg(res.message)
+            // 将登陆成功得到的token字符串 保存到 localstorage中
+
+            // localStorage.setItem() 此方法把token保存到过滤器
+            localStorage.setItem('token', res.token)
+            // 跳转到后台页面
+            location.href = '/index.html'
+
+        })
+    })
+})
+
+
