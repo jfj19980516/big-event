@@ -32,7 +32,7 @@ $(function () {
         }
     })
 
-
+    var layer = layui.layer
     // 监听注册表单默认提交
     $("#form_reg").on('submit', function (e) {
         // 阻止表单默认提交时间
@@ -43,7 +43,7 @@ $(function () {
             password: $('#form_reg [name=password]').val()
         }
         // 发送ajax请求
-        $.post('http://ajax.frontend.itheima.net/api/reguser', data, function (res) {
+        $.post('/api/reguser', data, function (res) {
             // 判断是否成功
             if (res.status !== 0) {
                 // layer.msg() 是leyui提供的弹出层
@@ -62,7 +62,7 @@ $(function () {
         // 获取输入框账号和密码
         var data = $(this).serialize();
         // 发送ajax请求
-        $.post('http://ajax.frontend.itheima.net/api/login', data, function (res) {
+        $.post('/api/login', data, function (res) {
             // 判断是否登录成功
             if (res.status !== 0) {
                 return layer.msg("您太丑拒绝您的登录");
@@ -77,6 +77,7 @@ $(function () {
 
         })
     })
+    // 监听键盘弹起事件
 })
 
 
